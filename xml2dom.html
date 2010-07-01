@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <title>Using pure JavaScript XML to DOM parser</title>
+    <script src="jquery-1.4.2.js" type="text/javascript"></script>
+    <script src="modjewel-require.js" type="text/javascript"></script>
+    <script src="metaxml.js" type="text/javascript"></script>
+    <script src="xml2dom.js" type="text/javascript"></script>
+    <script type="text/javascript">
+// load jsdom
+var loc = window.location.pathname.split('/');
+loc.pop();
+require.paths = [loc.join('/')];
+var dom = require('jsdom/level1/core').dom.level1.core;
+
+$(document).ready(function() {
+    $('button').bind("click", function() {
+        var test_comment_is_first_tag = '<!--this is a comment --><root>text</root>';
+        var test_comment_within_a_tag = '<root><!--this is a comment -->text</root>';
+        var test_comment_within_a_tag_follows_by_tag = '<root><!--this is a comment --><foo>text</foo></root>';
+        var test_comment_within_a_textnode = '<root>text even <!--this is a comment --> more text</root>';
+
+        var test_cdata_is_first_tag = '<![CDATA[this is CDATA ]]><root>text</root>';
+        var test_cdata_within_a_tag = '<root><![CDATA[this is CDATA ]]>text</root>';
+        var test_cdata_within_a_textnode = '<root>text even <![CDATA[this is CDATA ]]> more text</root>';
+
+        var test_selfclosing_tag = '<root><icloseimmediately/></root>';
+        var test_selfclosing_tag_with_space = '<root><icloseimmediatelywithspace /></root>';
+        var test_selfclosing_tag_with_attribute = '<root><icloseimmediately attri="but"/></root>';
+        var test_entities = '<root>text with &amp; ampersand and more &gt; &amp; &amp; \u00fc &#xA9; &#198; &#x2105; &#222; The numerical XML entity for Ö is &#xD6; or &#214;. For ö, it is &#xF6; or &#246; \u00F6 &#xA9; \u00A9</root>';
+
+        var alltypesxml = '<?xml version="1.0"?><root>   <normalelem>a text node</normalelem>    <!-- and some comments bla--><and><youshouldnot><![CDATA[forget some <CDATA> pretty cool. why doesn\'t the JavaScript version work?]]></youshouldnot><?some more="processing" instruction?></and></root>'
+
+        var xml2domparsed = xml2dom(metaxml);
+        // serrializer doesn't work when jsdom is used
+        var serializer = new XMLSerializer();
+        //var seri_xml2domparsed = serializer.serializeToString(xml2domparsed);
+        var seri_xml2domparsed = xml2domparsed;
+        console.log('serialized (xml2domparsed): ' + seri_xml2domparsed);
+        $('#result').text('hello world ' +  seri_xml2domparsed);
+
+        var parser = new DOMParser();  
+        var parserparsed = parser.parseFromString(metaxml, "text/xml");
+        var seri_parserparsed = serializer.serializeToString(parserparsed);
+        console.log('serialized (parserparsed): ' + seri_parserparsed);
+    });
+});
+    </script>
+  </head>
+  <body>
+    <p><button>Evaluate</button></p>
+    <pre id="result"></pre>
+  </body>
+</html>
